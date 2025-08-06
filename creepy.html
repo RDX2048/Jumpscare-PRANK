@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>I can see you</title>
+  <style>
+    body {
+      background-color: black;
+      color: red;
+      font-family: 'Courier New', monospace;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+      height: 100vh;
+      text-align: center;
+      font-size: 1.8em;
+      animation: flicker 0.15s infinite alternate;
+      overflow: hidden;
+      position: relative;
+    }
+
+    #typed-text {
+      white-space: pre-wrap;
+      width: 70%;
+      border-right: 2px solid red;
+      animation: blink 0.7s infinite;
+      z-index: 2;
+    }
+
+    @keyframes blink {
+      0% { border-color: red; }
+      50% { border-color: transparent; }
+      100% { border-color: red; }
+    }
+
+    @keyframes flicker {
+      0% { background-color: black; opacity: 1; }
+      50% { background-color: #1a0000; opacity: 0.8; }
+      100% { background-color: black; opacity: 1; }
+    }
+
+    /* 👁️ Eye Styling */
+    .eye {
+      position: absolute;
+      bottom: 50px;
+      right: 50px;
+      width: 120px;
+      height: 120px;
+      background: white;
+      border-radius: 50%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      box-shadow: 0 0 15px red;
+      z-index: 1;
+      transition: background 0.2s;
+    }
+
+    .pupil {
+      width: 40px;
+      height: 40px;
+      background: black;
+      border-radius: 50%;
+      position: relative;
+    }
+
+    .blink {
+      background: black !important;
+    }
+
+    /* 😱 Jumpscare */
+    #jumpscare {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: black;
+      justify-content: center;
+      align-items: center;
+      z-index: 9999;
+    }
+
+    #jumpscare img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    /* 🛑 Fake shutdown */
+    #shutdown-screen {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: black;
+      color: white;
+      font-family: 'Segoe UI', sans-serif;
+      font-size: 2em;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+      z-index: 99999;
+    }
+
+    #shutdown-screen p {
+      animation: blinkShutdown 1s infinite;
+    }
+
+    @keyframes blinkShutdown {
+      0% { opacity: 1; }
+      50% { opacity: 0.2; }
+      100% { opacity: 1; }
+    }
+  </style>
+</head>
+<body>
+
+  <div id="typed-text"></div>
+
+  <!-- 👁️ Eye -->
+  <div class="eye" id="eye">
+    <div class="pupil" id="pupil"></div>
+  </div>
+
+  <!-- 🔊 Background creepy audio -->
+  <audio id="creepy-audio" autoplay loop>
+    <source src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-14.mp3" type="audio/mpeg">
+  </audio>
+
+  <!-- 💥 Jumpscare Sound -->
+  <audio id="jumpscare-audio">
+    <source src="https://www.soundjay.com/human/sounds/scream-02.mp3" type="audio/mpeg">
+  </audio>
+
+  <!-- 😱 Jumpscare Image -->
+  <div id="jumpscare">
+    <img src="jumpscare.jpeg" alt="BOO!">
+  </div>
+
+  <!-- 🛑 Fake Shutdown -->
+  <div id="shutdown-screen">
+    <p>Shutting down...</p>
+  </div>
+
+  <script>
+    const message = `
+I see you.
+
+You followed my commands.
+
+You thought it was just a joke...
+
+But now, you belong to me.
+
+Try to resist... if you can.
+😈
+`;
+    let index = 0;
+    const speed = 80;
+
+    const typedText = document.getElementById("typed-text");
+    const audio = document.getElementById("creepy-audio");
+    const jumpscareAudio = document.getElementById("jumpscare-audio");
+
+    function typeCreepy() {
+      if (index < message.length) {
+        typedText.textContent += message.charAt(index);
+        index++;
+        setTimeout(typeCreepy, speed);
+      } else {
+        setTimeout(triggerJumpscare, 2000);
+      }
+    }
+
+    function triggerJumpscare() {
+      document.getElementById("jumpscare").style.display = "flex";
+      audio.pause();
+      jumpscareAudio.play();
+
+      setTimeout(showFakeShutdown, 3000); // delay after scream
+    }
+
+    function showFakeShutdown() {
+      document.getElementById("jumpscare").style.display = "none";
+      document.getElementById("shutdown-screen").style.display = "flex";
+    }
+
+    window.onload = function () {
+      typeCreepy();
+      audio.volume = 0.3;
+      document.body.addEventListener("click", () => {
+        audio.play();
+      });
+    };
+
+    // 👁️ Eye follows cursor
+    const eye = document.getElementById("eye");
+    const pupil = document.getElementById("pupil");
+
+    document.addEventListener("mousemove", (e) => {
+      const eyeRect = eye.getBoundingClientRect();
+      const eyeCenterX = eyeRect.left + eyeRect.width / 2;
+      const eyeCenterY = eyeRect.top + eyeRect.height / 2;
+
+      const angleX = e.clientX - eyeCenterX;
+      const angleY = e.clientY - eyeCenterY;
+
+      const maxMove = 25;
+      const distance = Math.sqrt(angleX ** 2 + angleY ** 2);
+      const ratio = Math.min(1, maxMove / distance);
+
+      const moveX = angleX * ratio;
+      const moveY = angleY * ratio;
+
+      pupil.style.transform = `translate(${moveX}px, ${moveY}px)`;
+    });
+
+    // 👁️ Eye blinking randomly
+    function blinkEye() {
+      eye.classList.add("blink");
+      setTimeout(() => {
+        eye.classList.remove("blink");
+      }, 200);
+    }
+
+    setInterval(() => {
+      if (Math.random() < 0.3) {
+        blinkEye();
+      }
+    }, 1500);
+  </script>
+
+</body>
+</html>
